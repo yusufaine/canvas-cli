@@ -3,6 +3,7 @@ package canvas
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/charmbracelet/log"
 	"github.com/yusufaine/canvas-cli/internal/pkg/canvashttp"
@@ -10,6 +11,8 @@ import (
 )
 
 func Start(config *Config) {
+	var wg sync.WaitGroup
+
 	cc := canvashttp.NewClient(config.AccessToken)
 	idCodeMap := cc.GetCurrentlyEnrolledCourses()
 	nusCodeToFileInfo := getNusCodeFileMap(cc, idCodeMap)
@@ -18,19 +21,24 @@ func Start(config *Config) {
 	filterFiles(nusCodeToFileInfo, extBlacklist)
 
 	for code, fileInfos := range nusCodeToFileInfo {
-		var (
-			pl      = log.With("nus_code", code)
-			i   int = 0
-			max int = len(fileInfos)
-		)
-		for _, fileInfo := range fileInfos {
-			i++
-			if !cc.DownloadFile(code, fileInfo, i, max) {
-				continue
+		wg.Add(1)
+		go func(code string, fileInfos []canvashttp.FileInfo) {
+			defer wg.Done()
+			var (
+				pl      = log.With("nus_code", code)
+				i   int = 0
+				max int = len(fileInfos)
+			)
+			for _, fileInfo := range fileInfos {
+				i++
+				if !cc.DownloadFile(code, fileInfo, i, max) {
+					continue
+				}
+				pl.Info(fmt.Sprintf("[%d/%d] download completed", i, max), "file", fileInfo.DisplayName)
 			}
-			pl.Info(fmt.Sprintf("[%d/%d] download completed", i, max), "file", fileInfo.DisplayName)
-		}
+		}(code, fileInfos)
 	}
+	wg.Wait()
 }
 
 func getNusCodeFileMap(cc *canvashttp.CanvasClient, enrolledCourses []canvashttp.CourseInfo) map[string][]canvashttp.FileInfo {
