@@ -124,7 +124,12 @@ func (c CanvasClient) GetFilesInCourse(canvasId int, nusCode string) []FileInfo 
 	return courseFiles
 }
 
-func (c CanvasClient) DownloadFile(nusCode string, info FileInfo) bool {
+func (c CanvasClient) DownloadFile(nusCode string, info FileInfo, current, max int) bool {
+	path := fmt.Sprintf("%s/%s", nusCode, info.DisplayName)
+	if _, err := os.Stat(path); err == nil {
+		log.Info(fmt.Sprintf("[%d/%d] file exists, skipping...", current, max), "path", path)
+		return false
+	}
 	req, err := http.NewRequest(http.MethodGet, info.DownloadLink, nil)
 	if err != nil {
 		log.Error("unable to build download request",
@@ -146,7 +151,6 @@ func (c CanvasClient) DownloadFile(nusCode string, info FileInfo) bool {
 		return false
 	}
 
-	path := fmt.Sprintf("%s/%s", nusCode, info.DisplayName)
 	if err := os.MkdirAll(filepath.Dir(path), 0775); err != nil {
 		log.Error("unable to create file path",
 			"path", path,

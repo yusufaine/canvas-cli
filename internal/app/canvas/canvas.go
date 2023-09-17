@@ -25,7 +25,7 @@ func Start(config *Config) {
 		)
 		for _, fileInfo := range fileInfos {
 			i++
-			if !cc.DownloadFile(code, fileInfo) {
+			if !cc.DownloadFile(code, fileInfo, i, max) {
 				continue
 			}
 			pl.Info(fmt.Sprintf("[%d/%d] download completed", i, max), "file", fileInfo.DisplayName)
