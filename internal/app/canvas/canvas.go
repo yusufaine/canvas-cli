@@ -90,7 +90,7 @@ func isWhitelistedExtension(whitelist map[string]struct{}, displayName string) b
 	ext := nameSplit[len(nameSplit)-1]
 	_, ok := whitelist[ext]
 	if !ok {
-		log.Debug("extension not in whitelist, skipping", "filename", displayName)
+		log.Warn("extension not in whitelist, skipping", "filename", displayName)
 	}
 	return ok
 }
@@ -98,7 +98,7 @@ func isWhitelistedExtension(whitelist map[string]struct{}, displayName string) b
 // Returns true if the current file size is less than the maximum file size
 func isLargerThanMaxBytes(fileSize, maxSizeBytes int, displayName string) bool {
 	if fileSize > maxSizeBytes {
-		log.Debug(fmt.Sprintf("file larger than %dB", maxSizeBytes), "filename", displayName, "size", fileSize)
+		log.Warn(fmt.Sprintf("file larger than %dMB", maxSizeBytes/1_000_000), "filename", displayName, "size", fileSize)
 		return true
 	}
 	return false
