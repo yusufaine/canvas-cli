@@ -2,6 +2,9 @@
 
 > Download files from currently-enrolled Canvas courses.
 
+<!-- omit in toc -->
+## Table of Contents
+
 - [Installing](#installing)
   - [Caveats for MacOS users](#caveats-for-macos-users)
 - [Usage](#usage)
