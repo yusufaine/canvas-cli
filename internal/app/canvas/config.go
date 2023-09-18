@@ -10,9 +10,10 @@ import (
 
 const tokenFileName = ".token"
 
-// TODO: Add more config params (e.g max size, ignore extension, etc.)
 type Config struct {
 	AccessToken string
+	Host        string
+	MaxSizeMb   int
 }
 
 func NewConfig() *Config {
@@ -21,9 +22,11 @@ func NewConfig() *Config {
 		c            Config
 	)
 
-	flag.StringVar(&c.AccessToken, "token", "", "Canvas access token. If none provided, the application will try to read the '.token' file")
-	flag.BoolVar(&store, "store", false, "Stores token in a '.token' file in the same directory as the binary. (Default: false)")
+	flag.BoolVar(&store, "store", false, "Stores token in a '.token' file in the same directory as the binary")
 	flag.BoolVar(&debug, "debug", false, "Log debug severity")
+	flag.IntVar(&c.MaxSizeMb, "max-size", 10, "Max file size to download in MB")
+	flag.StringVar(&c.AccessToken, "token", "", "Canvas access token. If none provided, the application will try to read the '.token' file")
+	flag.StringVar(&c.Host, "host", "canvas.nus.edu.sg", "Canvas host")
 	flag.Parse()
 
 	if debug {
