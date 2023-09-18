@@ -11,25 +11,33 @@ import (
 const tokenFileName = ".token"
 
 type Config struct {
-	AccessToken string
-	ApiPath     string
-	Host        string
-	MaxSizeMb   int
+	AccessToken  string
+	ApiPath      string
+	Host         string
+	MaxSizeMb    int
+	ExtWhitelist map[string]struct{}
 }
 
 func NewConfig() *Config {
 	var (
 		debug, store bool
 		c            Config
+		ext          string
 	)
 
 	flag.BoolVar(&store, "store", false, "Stores token in a '.token' file in the same directory as the binary")
 	flag.BoolVar(&debug, "debug", false, "Log debug severity")
-	flag.IntVar(&c.MaxSizeMb, "max-size", 10, "Max file size to download in MB")
+	flag.IntVar(&c.MaxSizeMb, "max-size", 10, "Max file size to download in MB, minimum 1MB")
 	flag.StringVar(&c.AccessToken, "token", "", "Canvas access token. If none provided, the application will try to read the '.token' file")
 	flag.StringVar(&c.ApiPath, "api-path", "/api/v1", "API path prefix before resources (e.g canvas.nus.edu.sg/api/v1/users/self)")
 	flag.StringVar(&c.Host, "host", "canvas.nus.edu.sg", "Canvas host")
+	flag.StringVar(&ext, "ext", "", "List of file extensions to download, separated by commas")
 	flag.Parse()
+
+	if c.MaxSizeMb < 1 {
+		log.Error("--max-size must be at least 1")
+		os.Exit(1)
+	}
 
 	if debug {
 		log.SetLevel(log.DebugLevel)
@@ -38,6 +46,7 @@ func NewConfig() *Config {
 
 	c.tokenCheck()
 	c.storeToken()
+	c.populateExtensionWhitelist(ext)
 
 	return &c
 }
@@ -89,4 +98,17 @@ func (c *Config) storeToken() {
 		log.Error("unable to (over)write content to '.token'", "error", err)
 		os.Exit(1)
 	}
+}
+
+func (c *Config) populateExtensionWhitelist(ext string) {
+	extMap := make(map[string]struct{})
+	if ext == "" {
+		c.ExtWhitelist = extMap
+		return
+	}
+
+	for _, v := range strings.Split(ext, ",") {
+		extMap[v] = struct{}{}
+	}
+	c.ExtWhitelist = extMap
 }

@@ -2,18 +2,19 @@ package canvas
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/charmbracelet/log"
-	"github.com/yusufaine/canvas-cli/internal/pkg/canvashttp"
+	"github.com/yusufaine/canvas-cli/internal/pkg/canvasclient"
 )
 
 func Start(config *Config) {
 	var wg sync.WaitGroup
 
-	cc := canvashttp.NewClient(config.AccessToken,
-		canvashttp.WithHost(config.Host),
-		canvashttp.WithPathApiPrefix(config.ApiPath),
+	cc := canvasclient.NewClient(config.AccessToken,
+		canvasclient.WithHost(config.Host),
+		canvasclient.WithPathApiPrefix(config.ApiPath),
 	)
 	idCodeMap := cc.GetCurrentlyEnrolledCourses()
 	nusCodeToFileInfo := getNusCodeFileMap(cc, idCodeMap)
@@ -22,7 +23,7 @@ func Start(config *Config) {
 
 	for code, fileInfos := range nusCodeToFileInfo {
 		wg.Add(1)
-		go func(code string, fileInfos []canvashttp.FileInfo) {
+		go func(code string, fileInfos []canvasclient.FileInfo) {
 			defer wg.Done()
 			var (
 				pl      = log.With("nus_code", code)
@@ -31,6 +32,7 @@ func Start(config *Config) {
 			)
 			for _, fileInfo := range fileInfos {
 				i++
+				pl.Info("attempting to download...", "file", fileInfo.DisplayName)
 				if !cc.DownloadFile(code, fileInfo, i, max) {
 					continue
 				}
@@ -41,8 +43,8 @@ func Start(config *Config) {
 	wg.Wait()
 }
 
-func getNusCodeFileMap(cc *canvashttp.CanvasClient, enrolledCourses []canvashttp.CourseInfo) map[string][]canvashttp.FileInfo {
-	nusCodeFileInfo := make(map[string][]canvashttp.FileInfo)
+func getNusCodeFileMap(cc *canvasclient.CanvasClient, enrolledCourses []canvasclient.CourseInfo) map[string][]canvasclient.FileInfo {
+	nusCodeFileInfo := make(map[string][]canvasclient.FileInfo)
 	for _, course := range enrolledCourses {
 		id := course.CanvasId
 		code := course.NusCode
@@ -55,14 +57,18 @@ func getNusCodeFileMap(cc *canvashttp.CanvasClient, enrolledCourses []canvashttp
 }
 
 // Filters out files with a size larger than config.MaxSize
-func filterFiles(config *Config, nusCodeFileInfo map[string][]canvashttp.FileInfo) {
+func filterFiles(config *Config, nusCodeFileInfo map[string][]canvasclient.FileInfo) {
 	maxSizeBytes := config.MaxSizeMb * 1_000_000
+
 	for nusCode, infos := range nusCodeFileInfo {
-		var filteredInfo []canvashttp.FileInfo
+		var filteredInfo []canvasclient.FileInfo
 		// TODO: add more filter here if needed
 		for _, info := range infos {
-			if info.Size > maxSizeBytes {
-				log.Debug("filtered file out...", "filename", info.DisplayName, "size", info.Size, "max_size", maxSizeBytes)
+			if !isWhitelistedExtension(config.ExtWhitelist, info.DisplayName) {
+				continue
+			}
+
+			if isLargerThanMaxBytes(info.Size, maxSizeBytes, info.DisplayName) {
 				continue
 			}
 			filteredInfo = append(filteredInfo, info)
@@ -70,4 +76,30 @@ func filterFiles(config *Config, nusCodeFileInfo map[string][]canvashttp.FileInf
 
 		nusCodeFileInfo[nusCode] = filteredInfo
 	}
+}
+
+// Returns true if:
+//  1. File is whitelisted, or
+//  2. If whitelist map is empty, all extensions are allowed
+func isWhitelistedExtension(whitelist map[string]struct{}, displayName string) bool {
+	if len(whitelist) == 0 {
+		return true
+	}
+
+	nameSplit := strings.Split(displayName, ".")
+	ext := nameSplit[len(nameSplit)-1]
+	_, ok := whitelist[ext]
+	if !ok {
+		log.Debug("extension not in whitelist, skipping", "filename", displayName)
+	}
+	return ok
+}
+
+// Returns true if the current file size is less than the maximum file size
+func isLargerThanMaxBytes(fileSize, maxSizeBytes int, displayName string) bool {
+	if fileSize > maxSizeBytes {
+		log.Debug(fmt.Sprintf("file larger than %dB", maxSizeBytes), "filename", displayName, "size", fileSize)
+		return true
+	}
+	return false
 }
