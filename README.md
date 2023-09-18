@@ -1,6 +1,8 @@
-# NUS Canvas File Downloader
+# Canvas LMS File Downloader
 
-> Download files from currently-enrolled Canvas courses.
+>Download files from currently-enrolled [Canvas](https://www.instructure.com/canvas) courses. 
+
+Developed for students from [National University of Singapore](https://nus.edu.sg), extendable to other institutions (see [Non-NUS Canvas Users](#non-nus-canvas-users)).
 
 <!-- omit in toc -->
 ## Table of Contents
@@ -8,7 +10,10 @@
 - [Installing](#installing)
   - [Caveats for MacOS users](#caveats-for-macos-users)
 - [Usage](#usage)
+  - [Flags](#flags)
+  - [Non-NUS Canvas Users](#non-nus-canvas-users)
 - [Demo](#demo)
+- [Contributing](#contributing)
 
 ## Installing
 
@@ -34,8 +39,24 @@ MacOS users may encounter an error when running the binary from the releases pag
    - (Recommended) Create a `.token` file in the same directory as the application and paste the token in there, or
    - Pass in the token as a command-line argument (specifying `--store` is recommended to save the token for future use).
 
+### Flags
+
+Run the application with the `--help` flag to see the list of available flags.
+
+### Non-NUS Canvas Users
+
+If you are not from NUS, you will need to specify the Canvas URL using the `--host` flag. For example, if you are from Yale University, you will need to run the application as follows, assuming you have a `.token` file in the same directory as the application:
+
+```bash
+./nus-canvas-cli --host canvas.yale.edu
+```
+
 ## Demo
 
-> Using the recommended method of storing the token in a `.token` file.
+> Using the recommended method of storing the token in a `.token` file. By default, the application will only download files that are <= 10MB in size. This can be changed by specifying the `--size=SIZE_IN_MB` flag (e.g. `--size=50` to download files <= 50MB in size)
 
 ![Demo](https://gist.githubusercontent.com/yusufaine/23cea8a7a4f0fe3714f81d19944cbda7/raw/d1acda94510f6a6de9d67c62b61e0e5bf76c6c2e/02_demo.gif)
+
+## Contributing
+
+This project is open to contributions. Feel free to open an issue or submit a pull request detailing your the issues encountered, or changes made respectively.

@@ -17,12 +17,9 @@ import (
 type CanvasClient struct {
 	client      *http.Client
 	accessToken string
+	canvasHost  string
+	apiPath     string
 }
-
-const (
-	CanvasHost = "canvas.nus.edu.sg"
-	ApiPath    = "/api/v1"
-)
 
 func NewClient(token string, opts ...canvasClientOpts) *CanvasClient {
 	if token == "" {
@@ -30,8 +27,10 @@ func NewClient(token string, opts ...canvasClientOpts) *CanvasClient {
 	}
 
 	cc := &CanvasClient{
-		client:      http.DefaultClient,
 		accessToken: token,
+		apiPath:     "/api/v1",
+		canvasHost:  "canvas.nus.edu.sg",
+		client:      http.DefaultClient,
 	}
 
 	for _, opt := range opts {
@@ -46,8 +45,8 @@ func NewClient(token string, opts ...canvasClientOpts) *CanvasClient {
 func (c CanvasClient) GetCurrentlyEnrolledCourses() []CourseInfo {
 	endpoint := url.URL{
 		Scheme: "https",
-		Host:   CanvasHost,
-		Path:   fmt.Sprint(ApiPath + "/users/self/courses"),
+		Host:   c.canvasHost,
+		Path:   fmt.Sprint(c.apiPath + "/users/self/courses"),
 		RawQuery: url.Values{
 			"enrollment_state": {"active"},
 		}.Encode(),
@@ -87,8 +86,8 @@ func (c CanvasClient) GetCurrentlyEnrolledCourses() []CourseInfo {
 func (c CanvasClient) GetFilesInCourse(canvasId int, nusCode string) []FileInfo {
 	endpoint := url.URL{
 		Scheme: "https",
-		Host:   CanvasHost,
-		Path:   fmt.Sprintf("%s/courses/%d/files", ApiPath, canvasId),
+		Host:   c.canvasHost,
+		Path:   fmt.Sprintf("%s/courses/%d/files", c.apiPath, canvasId),
 	}
 
 	log.Debug("requesting files...", "id", canvasId, "code", nusCode)

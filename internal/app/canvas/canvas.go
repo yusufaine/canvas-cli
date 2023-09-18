@@ -2,23 +2,23 @@ package canvas
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/charmbracelet/log"
 	"github.com/yusufaine/canvas-cli/internal/pkg/canvashttp"
-	"github.com/yusufaine/canvas-cli/internal/pkg/stringset"
 )
 
 func Start(config *Config) {
 	var wg sync.WaitGroup
 
-	cc := canvashttp.NewClient(config.AccessToken)
+	cc := canvashttp.NewClient(config.AccessToken,
+		canvashttp.WithHost(config.Host),
+		canvashttp.WithPathApiPrefix(config.ApiPath),
+	)
 	idCodeMap := cc.GetCurrentlyEnrolledCourses()
 	nusCodeToFileInfo := getNusCodeFileMap(cc, idCodeMap)
 
-	extBlacklist := stringset.FromElements("mp4")
-	filterFiles(nusCodeToFileInfo, extBlacklist)
+	filterFiles(config, nusCodeToFileInfo)
 
 	for code, fileInfos := range nusCodeToFileInfo {
 		wg.Add(1)
@@ -54,18 +54,17 @@ func getNusCodeFileMap(cc *canvashttp.CanvasClient, enrolledCourses []canvashttp
 	return nusCodeFileInfo
 }
 
-// Filters out files with the extensions in the blacklist.
-func filterFiles(nusCodeFileInfo map[string][]canvashttp.FileInfo, extBlacklist *stringset.Stringset) {
+// Filters out files with a size larger than config.MaxSize
+func filterFiles(config *Config, nusCodeFileInfo map[string][]canvashttp.FileInfo) {
+	maxSizeBytes := config.MaxSizeMb * 1_000_000
 	for nusCode, infos := range nusCodeFileInfo {
 		var filteredInfo []canvashttp.FileInfo
+		// TODO: add more filter here if needed
 		for _, info := range infos {
-			split := strings.Split(info.DisplayName, ".")
-			ext := split[len(split)-1]
-
-			if extBlacklist.Contains(ext) {
+			if info.Size > maxSizeBytes {
+				log.Debug("filtered file out...", "filename", info.DisplayName, "size", info.Size, "max_size", maxSizeBytes)
 				continue
 			}
-
 			filteredInfo = append(filteredInfo, info)
 		}
 
