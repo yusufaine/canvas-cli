@@ -1,6 +1,6 @@
 # Canvas LMS File Downloader
 
->Download files from currently-enrolled [Canvas](https://www.instructure.com/canvas) courses. 
+>Download files from currently-enrolled [Canvas](https://www.instructure.com/canvas) courses.
 
 Developed for students from [National University of Singapore](https://nus.edu.sg), extendable to other institutions (see [Non-NUS Canvas Users](#non-nus-canvas-users)).
 
@@ -20,9 +20,12 @@ Developed for students from [National University of Singapore](https://nus.edu.s
 There are 2 ways to use this application:
 
 1. Download the latest release from the [releases page](https://github.com/yusufaine/nus-canvas-cli/releases), or
-2. Clone this repository and run `go run main.go` to install dependencies. (Requires [Go](https://golang.org/dl/) v1.20+).
+2. Clone this repository. (Requires [Go](https://golang.org/dl/) >= v1.20, would probably still work with 1.18).
 
 ### Caveats for MacOS users
+
+<details>
+<summary>Click to expand</summary>
 
 MacOS users may encounter an error when running the binary from the releases page for the first time due to MacOS's security settings. To fix this, you will need to:
 
@@ -30,6 +33,8 @@ MacOS users may encounter an error when running the binary from the releases pag
 2. run the application binary again and allow it to run when prompted.
 
 ![Allow application to run](https://gist.githubusercontent.com/yusufaine/23cea8a7a4f0fe3714f81d19944cbda7/raw/dc64c05a08d5331355d75102ee71f56d1f1119ce/03_mac_caveat.png)
+
+</details>
 
 ## Usage
 
@@ -53,7 +58,9 @@ If you are not from NUS, you will need to specify the Canvas URL using the `--ho
 
 ## Demo
 
-> Using the recommended method of storing the token in a `.token` file. By default, the application will only download files that are <= 10MB in size. This can be changed by specifying the `--size=SIZE_IN_MB` flag (e.g. `--size=50` to download files <= 50MB in size)
+> Using the recommended method of storing the token in a `.token` file.
+>
+> By default, the application will only download files that are <= 10MB in size. This can be changed by specifying the `--size=SIZE_IN_MB` flag (e.g. `--size=50` to download files <= 50MB in size)
 
 ![Demo](https://gist.github.com/yusufaine/23cea8a7a4f0fe3714f81d19944cbda7/raw/0ce4e75ac7024bda57b6bdb15c6b9cec215be76d/02_demo.gif)
 
