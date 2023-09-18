@@ -1,4 +1,4 @@
-package canvashttp
+package canvasclient
 
 type CourseInfo struct {
 	CanvasId int    `json:"id"`

@@ -1,4 +1,4 @@
-package canvashttp
+package canvasclient
 
 import "net/http"
 
