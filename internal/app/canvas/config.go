@@ -12,6 +12,7 @@ const tokenFileName = ".token"
 
 type Config struct {
 	AccessToken string
+	ApiPath     string
 	Host        string
 	MaxSizeMb   int
 }
@@ -26,6 +27,7 @@ func NewConfig() *Config {
 	flag.BoolVar(&debug, "debug", false, "Log debug severity")
 	flag.IntVar(&c.MaxSizeMb, "max-size", 10, "Max file size to download in MB")
 	flag.StringVar(&c.AccessToken, "token", "", "Canvas access token. If none provided, the application will try to read the '.token' file")
+	flag.StringVar(&c.ApiPath, "api-path", "/api/v1", "API path prefix before resources (e.g canvas.nus.edu.sg/api/v1/users/self)")
 	flag.StringVar(&c.Host, "host", "canvas.nus.edu.sg", "Canvas host")
 	flag.Parse()
 

@@ -11,7 +11,10 @@ import (
 func Start(config *Config) {
 	var wg sync.WaitGroup
 
-	cc := canvashttp.NewClient(config.AccessToken)
+	cc := canvashttp.NewClient(config.AccessToken,
+		canvashttp.WithHost(config.Host),
+		canvashttp.WithPathApiPrefix(config.ApiPath),
+	)
 	idCodeMap := cc.GetCurrentlyEnrolledCourses()
 	nusCodeToFileInfo := getNusCodeFileMap(cc, idCodeMap)
 
